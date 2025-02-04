@@ -71,15 +71,11 @@ strategies = {
 }
 
 questions = [
-    "Which are the most awarded dogs?",
-    "Which dogs have multiple owners?",
-    "Which people have multiple dogs?",
-    "What are the top 3 cities represented?",
-    "What are the names and cities of the dogs who have awards?",
-    "Who has more than one phone number?",
-    "Who doesn't have a way for us to text them?",
-    "Will we have a problem texting any of the previous award winners?"
-    # "I need insert sql into my tables can you provide good unique data?"
+    "Which menu items are the most ordered?",
+    "Which customers have placed multiple orders?",
+    "Which customers haven't placed any orders?",
+    "Which menu items have never been ordered?",
+    "Who are the top 3 customers based on the number of orders?",
 ]
 
 def sanitizeForJustSql(value):

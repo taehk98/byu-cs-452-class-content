@@ -1,6 +1,6 @@
-# Dog Show
+# Restaurant
 
-My project models data that someone running a dog show might find useful. Includes contact information about people and relevant information about the dogs.
+This project models data relevant to the operation of a restaurant, including customer information, menu items, orders, and order items.
 
 
 
@@ -10,63 +10,44 @@ My project models data that someone running a dog show might find useful. Includ
 
 ## Query I thought it did well on
 
-**Question**: What are the names and cities of the dogs who have awards?
+**Question**: Which menu items are the most ordered?
 
 **GPT SQL Response**:
 ```sql
-SELECT d.name AS dog_name, z.city
-FROM dog d
-JOIN award a ON d.dog_id = a.dog_id
-JOIN person_dog pd ON d.dog_id = pd.dog_id
-JOIN person p ON pd.person_id = p.person_id
-JOIN address ad ON p.person_id = ad.person_id
-JOIN zip z ON ad.zip = z.zip;
+SELECT m.name, SUM(oi.quantity) AS total_ordered
+FROM Menu m
+JOIN OrderItem oi ON m.id = oi.menu_id
+GROUP BY m.id
+ORDER BY total_ordered DESC;
 ```
 
-**Friendly Response**: The award-winning dogs are Buddy from New York and Bella from Washington.
+**Friendly Response**: The most ordered menu items are Pork Belly (5 orders), Kimchi Stew (3 orders), and Bibimbap (2 orders).
 
 
 
 
 ## Question that it tripped up on
-It did the SQL part almost right, but didn't quite get the data back in a friendly way. I wanted to know that we wouldn't be able to text/SMS "Bob Jones" who is person id 2 in my database. It returned an id and then couldn't tell me what I wanted to know.
 
 
-
-Question: Will we have a problem texting any of the previous award winners?
+Question: Who are the top 3 customers based on the number of orders?
 
 **GPT SQL Response**:
 ```sql
-SELECT DISTINCT phone.person_id, phone.can_recieve_sms
-FROM award
-JOIN dog ON award.dog_id = dog.dog_id
-JOIN person_dog ON dog.dog_id = person_dog.dog_id
-JOIN phone ON person_dog.person_id = phone.person_id
-WHERE phone.can_recieve_sms = 0;
+SELECT c.id, c.name, COUNT(o.id) AS total_orders
+FROM Customer c
+JOIN Order o ON c.id = o.customer_id
+GROUP BY c.id
+ORDER BY total_orders DESC
+LIMIT 3;
 ```
 
-SQL Result is just "IDs": [(2, 0)]
+SQL Result is just "IDs": [(1, 'Kim Chulsoo', 3), (3, 'Park Minsu', 2), (2, 'Lee Younghee', 1)]
 
-**Friendly response**: Yes, we might encounter problems texting previous award winners due to potential privacy or contact restrictions.
-
-The generic response really didn't have anything to do with my data. I would have preferred it to say something like, "we can't text Bob Jones, whose dog previously won such-a-such award".
-
-I think I could probably get the answer I'm looking for with a different prompting strategy. I used zero_shot and will try this question again with single domain but gave it an example question answer from a previous question that it succeeded on with asking who didn't have texting capapbility.
-
-## Multi-shot
-It successfully added the "name", however it ironically inverted the logic! "Bob Jones" was the only one who had a winning dog and didn't have an SMS capable phone in the system.
-
-**Question (multi-shot)**: Will we have a problem texting any of the previous award winners?
-
-SQL Result is just "IDs": [(2, 'Bob Jones')]
-
-**Friendly response**: No problem, you won't have issues texting Bob Jones.
-
-The multi-shot prompt made it worse for this question. In both cases (single and multi) though it did seem to be querying the correct data, it just didn't interpret the results correctly.
+**Friendly response**: The top 3 customers based on the number of orders are Kim Chulsoo (3 orders), Park Minsu (2 orders), and Lee Younghee (1 order).
 
 
 ## Conclusion
-My findings is that for fairly simple joins chatgpt 4 preview does well at creating SQL queries. This could be useful for data engineers. Actually having a chat interface for non-engineers has issues and could give completely inaccurate answers.
+For straightforward join queries, GPT performs quite well at generating SQL queries, but the interpretation of results can sometimes be a bit off when more complex or conditional insights are needed. More careful prompting strategies or model training might be required for more advanced query interpretation, especially in terms of translating raw data into user-friendly context. This could be useful for non-technical users but may require some tuning.
 
 
 
